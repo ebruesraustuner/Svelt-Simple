@@ -1,99 +1,53 @@
 <script>
-  import Nested from "./Nested.svelte";
+  import Child from "./Child.svelte";
+  import Keypad from "./Keypad.svelte";
+  import Input from "./Input.svelte";
+  import { onMount } from "svelte";
+  let inputValue = "";
+  let field;
 
-  let name = "esraa";
-  let count = 0;
-  let menu = ["Cookies and cream", "Mint choc chip", "Raspberry ripple"];
-  function incrementCount() {
-    count += 1;
-  }
-  $: doubled = count * 2;
-  $: if (doubled >= 10) {
-    // alert("count is dangerously high!");
-    //count = 9;
-  }
-  let numbers = [];
-  let selected = {}
-  function addNumber() {
-    //   //normal push işlemi,
-    // numbers.push(numbers.length + 1);
-    // //otomatik görmeyeceği için
-    // //Svelte's reactivity is triggered by assignments
-    // numbers = numbers;
-    //instead of
-    numbers = [...numbers, numbers.length + 1];
-  }
-  function getLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(showPosition);
-    }
-  }
+  let pin = "";
+  $: view = pin ? pin.replace(/\d(?!$)/g, "•") : "enter your pin";
+  let photos = [];
 
-  function showPosition(position) {
-    //can not be tested,
-    //todo
-    console.log(
-      "🚀 ~ file: App.svelte ~ line 31 ~ showPosition ~ position",
-      position
+  onMount(async () => {
+    const res = await fetch(
+      `https://jsonplaceholder.typicode.com/photos?_limit=20`
     );
-    console.log(
-      "enlem" + position.coords.latitude,
-      "boylarm:" + position.coords.longtitude
-    );
-  }
-  function handleClick() {
-    alert("no more alerts");
-    // 		The full list of modifiers:
+    photos = await res.json();
+  });
 
-    // preventDefault — calls event.preventDefault() before running the handler. Useful for client-side form handling, for example.
-    // stopPropagation — calls event.stopPropagation(), preventing the event reaching the next element
-    // passive — improves scrolling performance on touch/wheel events (Svelte will add it automatically where it's safe to do so)
-    // nonpassive — explicitly set passive: false
-    // capture — fires the handler during the capture phase instead of the bubbling phase (MDN docs)
-    // once — remove the handler after the first time it runs
-    // self — only trigger handler if event.target is the element itself
-    // trusted — only trigger handler if event.isTrusted is true. I.e. if the event is triggered by a user action.
-  }
-  function onSelected(value){
-   console.log("🚀 ~ file: App.svelte ~ line 58 ~ onSelected ~ value", value)
-	  
+  function handleSubmit(data) {
+    console.log("🚀 ~ file: App.svelte ~ line 10 ~ handleSubmit ~ data", data);
+    // alert('´submitted ${pin}´')
+    console.log("submitted", { pin });
   }
 </script>
 
 <main>
-  <h1>Hello {name.toUpperCase()}!</h1>
-  <p>
-    Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn
-    how to build Svelte apps.
-  </p>
-  <Nested />
-  <button on:click={incrementCount}>{count} doubled {doubled}</button>
-  <input type="number" bind:value={count} min="0" max="10" />
-  <button on:click={addNumber}>{numbers}</button>
-  <button on:click|once={handleClick}> Click me </button>
-  <button on:click={getLocation}>Show position</button>
-  {#if count > 10}
-    <p>{count} is greater than 10</p>
-  {:else if 5 > count}
-    <p>{count} is less than 5</p>
-  {:else}
-    <p>{count} is between 5 and 10</p>
-  {/if}
-  <h2>Flavours</h2>
-
-  {#each menu as flavour}
-    <label>
-		<input type=radio bind:group={menu} name="scoops" value={1}>
-      {flavour}
-    </label>
-  {/each}
-  <select multiple bind:value={selected} on:change="{onSelected(selected)}">
-	{#each menu as flavour}
-		<option value={flavour}>
-			{flavour}
-		</option>
+  <!-- <Child propValue="Pass this to the child!" /> -->
+  <!-- <Child bind:value="{inputValue}"  /> -->
+  <!-- componentlerdeki instanceların kendilerini bağlayabilirz -->
+  <!-- <Input bind:this={field}/>
+  <button on:click="{() => field.focus()}">
+    Focus field
+  </button>
+  <p>Input value is: {inputValue}</p>
+  <h1 style="color: {pin ? '#333' : '#ccc'}">{view}</h1>
+  <Keypad bind:value={pin} on:submit={handleSubmit} /> -->
+  <h1>Photo album</h1>
+  <div class="photos">
+    {#each photos as photo}
+    <figure>
+      <img src={photo.thumbnailUrl} alt={photo.title}>
+      <figcaption>{photos.title}</figcaption>
+    </figure>
+    {:else}
+		<!-- this block renders when photos.length === 0 -->
+		<p>loading...</p>
 	{/each}
-</select>
+
+  </div>
 </main>
 
 <style>
@@ -103,12 +57,17 @@
     max-width: 240px;
     margin: 0 auto;
   }
+  .photos {
+		width: 100%;
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		grid-gap: 8px;
+	}
 
-  h1 {
-    color: #ff3e00;
-    font-size: 4em;
-    font-weight: 100;
-  }
+	figure, img {
+		width: 100%;
+		margin: 0;
+	}
 
   @media (min-width: 640px) {
     main {
